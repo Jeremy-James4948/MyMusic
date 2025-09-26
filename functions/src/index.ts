@@ -1,29 +1,50 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+import {onCall} from "firebase-functions/v2/https";
+import {logger} from "firebase-functions";
 
-import {setGlobalOptions} from "firebase-functions";
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+interface Track {
+  title: string;
+  artist: string;
+  albumArtUrl: string;
+}
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({maxInstances: 10});
+const mockPlaylists: {[key: string]: Track[]} = {
+  chill: [
+    {title: "Chill Vibes", artist: "Lo-Fi Girl", albumArtUrl: "https://i.scdn.co/image/ab67616d0000b273e3335c833d07f354f9a46304"},
+    {title: "Relaxing Rain", artist: "Ambient Sounds", albumArtUrl: "https://i.scdn.co/image/ab67616d0000b273e3335c833d07f354f9a46304"},
+  ],
+  energetic: [
+    {title: "Pump Up", artist: "Workout Beats", albumArtUrl: "https://i.scdn.co/image/ab67616d0000b273e3335c833d07f354f9a46304"},
+  ],
+  default: [
+    {title: "Sample Track 1", artist: "Artist 1", albumArtUrl: "https://i.scdn.co/image/ab67616d0000b273e3335c833d07f354f9a46304"},
+    {title: "Sample Track 2", artist: "Artist 2", albumArtUrl: "https://i.scdn.co/image/ab67616d0000b273e3335c833d07f354f9a46304"},
+    {title: "Sample Track 3", artist: "Artist 3", albumArtUrl: "https://i.scdn.co/image/ab67616d0000b273e3335c833d07f354f9a46304"},
+    {title: "Sample Track 4", artist: "Artist 4", albumArtUrl: "https://i.scdn.co/image/ab67616d0000b273e3335c833d07f354f9a46304"},
+    {title: "Sample Track 5", artist: "Artist 5", albumArtUrl: "https://i.scdn.co/image/ab67616d0000b273e3335c833d07f354f9a46304"},
+  ],
+};
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+export const generatePlaylist = onCall({region: "us-central1"}, async (request) => {
+  logger.info("generatePlaylist called with mood:", request.data.mood);
+
+  const {mood} = request.data as {mood: string};
+
+  if (!mood || typeof mood !== "string") {
+    throw new Error("Mood is required and must be a string.");
+  }
+
+  // Simple mood matching (lowercase and trim)
+  const lowerMood = mood.toLowerCase().trim();
+  let tracks: Track[] = mockPlaylists.default;
+
+  if (lowerMood.includes("chill") || lowerMood.includes("relax")) {
+    tracks = mockPlaylists.chill;
+  } else if (lowerMood.includes("energetic") || lowerMood.includes("upbeat")) {
+    tracks = mockPlaylists.energetic;
+  }
+  // Add more mood mappings as needed
+
+  logger.info("Generated " + tracks.length + " tracks for mood: " + mood.substring(0, 20) + "...");
+
+  return tracks;
+});
