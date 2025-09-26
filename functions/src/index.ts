@@ -33,7 +33,7 @@ export const generatePlaylist = onCall({region: "us-central1"}, async (request) 
     throw new Error("Mood is required and must be a string.");
   }
 
-  // Simple mood matching (lowercase and trim)
+
   const lowerMood = mood.toLowerCase().trim();
   let tracks: Track[] = mockPlaylists.default;
 
@@ -42,7 +42,7 @@ export const generatePlaylist = onCall({region: "us-central1"}, async (request) 
   } else if (lowerMood.includes("energetic") || lowerMood.includes("upbeat")) {
     tracks = mockPlaylists.energetic;
   }
-  // Add more mood mappings as needed
+ 
 
   logger.info("Generated " + tracks.length + " tracks for mood: " + mood.substring(0, 20) + "...");
 
